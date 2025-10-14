@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Visit - VHID {{ vhid }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/">🏥 Patient Management</a>
+    </div>
+  </nav>
+
+  <div class="container mt-5">
+    <h2 class="text-center mb-4">➕ Add Visit for VHID: {{ vhid }}</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" class="card shadow p-4">
+      <div class="row g-3">
+
+        <div class="col-md-6">
+          <label class="form-label">Date</label>
+          <input type="text" name="date" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Referred By</label>
+          <input type="text" name="ref_by" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Complaints</label>
+          <input type="text" name="complaints" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Past History</label>
+          <input type="text" name="past_history" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Drug History</label>
+          <input type="text" name="drug_history" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Surgical History</label>
+          <input type="text" name="surgical_history" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Vitals</label>
+          <input type="text" name="vitals" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Examination</label>
+          <input type="text" name="examination" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Provisional Diagnosis</label>
+          <input type="text" name="prov_diagnosis" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Investigations</label>
+          <input type="text" name="invgs" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Impression</label>
+          <input type="text" name="impression" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Treatment</label>
+          <input type="text" name="treatment" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Next Review</label>
+          <input type="text" name="next_review" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">IMP</label>
+          <input type="text" name="imp" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">OE</label>
+          <input type="text" name="oe" class="form-control">
+        </div>
+
+      </div>
+
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-success btn-lg">Add Visit</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

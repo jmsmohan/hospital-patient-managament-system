@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Patient Hub – VHID Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #3256a8;        /* Deep, trusted blue */
+      --primary-dark: #223067;  /* Darker blue for contrast */
+      --secondary: #b48ede;     /* Soft lavender accent */
+      --accent: #e5edfa;        /* Light, peaceful blue-gray */
+      --bg: #f9fafc;            /* Off-white background */
+      --card-bg: #fff;
+      --text: #222;
+      --text-light: #5f5f6e;
+      --nav-bg: #f3f6fb;
+      --footer-bg: #e8eaf6;
+
+      --radius: 1rem;
+      --shadow: 0 6px 24px 0 rgba(82,86,168,0.05);
+      --transition: 0.3s ease;
+    }
+
+    body.dark-mode {
+      --primary: #70a1ff;
+      --primary-dark: #27408b;
+      --secondary: #dbbfe7;
+      --accent: #2a3350;
+      --bg: #141a26;
+      --card-bg: #1a2138;
+      --text: #eceff4;
+      --text-light: #aab8ce;
+      --nav-bg: #212b40;
+      --footer-bg: #1a2138;
+      --shadow: 0 6px 24px 0 rgba(32, 43, 64, 0.45);
+    }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      font-family: 'Source Sans Pro', sans-serif;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .navbar {
+      background: var(--nav-bg);
+      border-bottom: 1px solid var(--primary-dark);
+      box-shadow: var(--shadow);
+      padding: 1rem 0;
+      transition: background var(--transition);
+    }
+    .navbar-brand {
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      transition: color var(--transition);
+    }
+    .navbar-brand::before { content: '🏥'; margin-right: 0.5rem; }
+
+    .theme-toggle {
+      font-size: 1.2rem;
+      color: var(--primary-dark);
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: auto;
+      transition: color var(--transition);
+    }
+    .theme-toggle:hover { color: var(--secondary); }
+
+    .hero {
+      padding: 4rem 0 2rem;
+      text-align: center;
+      background: linear-gradient(180deg, var(--accent) 0, transparent 90%);
+      transition: background var(--transition);
+    }
+    .hero h1 {
+      font-weight: 800;
+      font-size: 2.7rem;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+      letter-spacing: 1px;
+      transition: color var(--transition);
+    }
+    .hero p {
+      font-size: 1.13rem;
+      color: var(--text-light);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+      transition: color var(--transition);
+    }
+
+    .action-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      height: 100%;
+      border-left: 6px solid var(--secondary);
+      transition: box-shadow var(--transition), border var(--transition), background var(--transition);
+    }
+    .action-card:hover {
+      box-shadow: 0 14px 28px rgba(50,86,168,0.13);
+      border-left-color: var(--primary);
+      background: var(--accent);
+    }
+    .action-card .icon {
+      font-size: 2.4rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+      transition: color var(--transition), transform var(--transition);
+    }
+    .action-card:hover .icon { color: var(--secondary); transform: scale(1.07); }
+
+    .action-card h5 {
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 0.65rem;
+      transition: color var(--transition);
+    }
+    .action-card p {
+      font-size: 1rem;
+      color: var(--text-light);
+      margin-bottom: 1.2rem;
+      line-height: 1.6;
+      transition: color var(--transition);
+    }
+
+    .btn-gradient {
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1.8rem;
+      background: linear-gradient(90deg, var(--primary-dark), var(--secondary));
+      transition: background var(--transition), box-shadow var(--transition);
+      position: relative;
+    }
+    .btn-gradient:hover {
+      background: linear-gradient(90deg, var(--secondary), var(--primary-dark));
+      box-shadow: 0 4px 14px rgba(50,86,168,0.10);
+    }
+
+    .mb-5 { margin-bottom: 3rem !important; }
+
+    #quick-search-form {
+      max-width: 400px;
+      margin: 2.3rem auto 0;
+    }
+    #quick-search-form .input-group {
+      box-shadow: var(--shadow);
+      transition: box-shadow var(--transition);
+    }
+    #quick-search-form .input-group:focus-within { box-shadow: 0 6px 24px rgba(50,86,168,0.12); }
+    #quick-search-form input {
+      border-color: var(--primary);
+      color: var(--text);
+      background: var(--card-bg);
+      transition: background var(--transition), color var(--transition);
+    }
+    #quick-search-form button {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    #quick-search-form button:hover {
+      background: var(--secondary);
+      border-color: var(--secondary);
+      color: var(--primary-dark);
+    }
+
+    footer {
+      margin-top: auto;
+      background: var(--footer-bg);
+      border-top: 1px solid var(--primary-dark);
+      padding: 1.2rem 0;
+      text-align: center;
+      color: var(--text-light);
+      font-size: 0.95rem;
+      transition: background var(--transition), color var(--transition);
+    }
+    footer a {
+      color: var(--primary-dark);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    footer a:hover { color: var(--secondary); }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="/">Patient Hub</a>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1>Welcome to Patient Hub</h1>
+      <p>Effortlessly manage patient records with secure, quick VHID-based access and a streamlined interface.</p>
+    </div>
+  </section>HM
+
+
+
+
+  
+  <!-- Action Cards -->
+  <section class="container mb-5">
+    <div class="row g-4 justify-content-center">
+      <div class="col-12 col-md-5 col-lg-4">
+        <div class="action-card" title="Add a new patient to the system">
+          <div class="icon">➕</div>
+          <h5>Add Patient</h5>
+          <p>Register new patients and keep medical details safe and accessible.</p>
+          <a href="/add" class="btn btn-gradient">Add Patient</a>
+        </div>
+      </div>
+      <div class="col-12 col-md-5 col-lg-4">
+        <div class="action-card" title="Retrieve patient details using VHID">
+          <div class="icon">🔍</div>
+          <h5>Retrieve Patient</h5>
+          <p>Access existing patient records instantly using their unique VHID.</p>
+          <a href="/retrieve" class="btn btn-gradient">Retrieve Patient</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    © 2025 Patient Hub | Built with <a href="https://flask.palletsprojects.com/">Flask</a> & <a href="https://getbootstrap.com/">Bootstrap 5</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+    const darkModeActive = localStorage.getItem('darkMode') === 'true';
+    if (darkModeActive) {
+      body.classList.add('dark-mode');
+      themeToggle.textContent = '☀️';
+    }
+    themeToggle.addEventListener('click', () => {
+      body.classList.toggle('dark-mode');
+      const enabled = body.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', enabled);
+      themeToggle.textContent = enabled ? '☀️' : '🌙';
+    });
+
+    // Tooltips
+    document.querySelectorAll('[title]').forEach(el =>
+      new bootstrap.Tooltip(el, {trigger: 'hover focus'})
+    );
+  </script>
+</body>
+</html>
