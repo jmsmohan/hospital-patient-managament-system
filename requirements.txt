@@ -2,8 +2,4 @@ Flask
 Flask-SQLAlchemy
 gunicorn
 psycopg2-binary
-python-docx
-Flask
-gunicorn
-python-docx
-Flask-WTF
+python-docx==0.8.12
