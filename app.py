@@ -1,326 +1,477 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import CSRFProtect
-import os
-import logging
-import sqlalchemy.exc
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Retrieve Patient – Patient Hub</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #12346e;
+      --accent: #38bdf8;
+      --card-bg: rgba(255,255,255,0.92);
+      --card-bg-dark: rgba(24,29,40,0.96);
+      --bg: #f2f7fa;
+      --bg-dark: #141a26;
+      --radius: 1.1rem;
+      --shadow: 0 4px 24px rgba(37,99,235,0.07);
+      --transition: 0.3s;
+      --glass: blur(9px);
+    }
+    body {
+      background: var(--bg);
+      font-family: 'Source Sans Pro', sans-serif;
+      min-height: 100vh;
+      color: #28334b;
+      transition: background var(--transition), color var(--transition);
+    }
+    body.dark-mode {
+      background: var(--bg-dark);
+      color: #eceff4;
+    }
+    .navbar {
+      background: #fff;
+      box-shadow: var(--shadow);
+      border-bottom: 1px solid #e5eaf3;
+      transition: background var(--transition);
+    }
+    .navbar.dark-mode { background: #232e47; }
+    .navbar-brand {
+      color: var(--primary-dark);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      transition: color var(--transition);
+    }
+    .theme-toggle {
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      margin-left: 13px;
+      color: var(--primary);
+    }
+    .theme-toggle:hover {
+      color: var(--accent);
+    }
+    .page-title {
+      margin-top: 2.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      color: var(--primary-dark);
+      font-size: 2rem;
+      letter-spacing: 1.2px;
+      font-weight: 800;
+    }
+    .glass-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.2rem;
+      margin-bottom: 2.2rem;
+      -webkit-backdrop-filter: var(--glass);
+      backdrop-filter: var(--glass);
+      border: 1px solid rgba(56, 189, 248, 0.07);
+      transition: background var(--transition);
+    }
+    body.dark-mode .glass-card {
+      background: var(--card-bg-dark);
+      border: 1px solid rgba(37, 99, 235, 0.13);
+    }
+    .section-card {
+      margin-bottom: 2rem;
+    }
+    .form-control, .form-select, textarea {
+      border-radius: 0.55rem;
+      border: 1.5px solid #e5e7eb;
+      transition: border 0.18s;
+      margin-bottom: 0.35rem;
+      font-size: 1rem;
+    }
+    .form-control:focus, .form-select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2.5px rgba(37,99,235,0.08);
+    }
+    .btn-primary, .btn-gradient {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border: none;
+      color: #fff;
+      padding: 0.62rem 1.80rem;
+      border-radius: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      font-size: 1.05rem;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 3px 12px rgba(37,99,235,0.06);
+    }
+    .btn-gradient:hover {
+      background: linear-gradient(90deg, var(--accent), var(--primary));
+      color: #fff;
+    }
+    .btn-edit, .btn-save {
+      background: linear-gradient(90deg,#fb7185 30%,#38bdf8 100%);
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      border-radius: 0.55rem;
+      padding: 0.52rem 1.2rem;
+      margin-left: 6px;
+      transition: background 0.18s;
+    }
+    .btn-edit:hover, .btn-save:hover {
+      background: linear-gradient(60deg,#38bdf8,#fb7185 60%);
+    }
+    .d-grid .btn, .d-grid .btn-gradient, .d-grid .btn-primary {
+      margin: 0.5rem 0 0 0;
+      width: 100%;
+    }
+    label.form-label {
+      font-weight: 700;
+    }
+    .visit-history-header {
+      color: var(--primary-dark);
+      font-size: 1.20rem;
+      font-weight: 700;
+      letter-spacing: 0.05rem;
+      background: var(--accent);
+      padding: 0.5rem 1rem 0.5rem 1.1rem;
+      border-radius: 0.7rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+    .visit-card {
+      background: #f6f9fb;
+      border-radius: 0.8rem;
+      margin-bottom: 1.1rem;
+      padding: 1.25rem 1.1rem;
+      border: 1px solid #e0e7ef;
+    }
+    body.dark-mode .visit-card {
+      background: #202d40;
+      border: 1px solid #223046;
+    }
+    .modal-content {
+      border-radius: 1rem;
+      background: var(--card-bg);
+      transition: background var(--transition);
+    }
+    body.dark-mode .modal-content {
+      background: var(--card-bg-dark);
+    }
+    .footer {
+      padding: 1.5rem 0 0.9rem 0;
+      text-align: center;
+      color: #6c8bad;
+      font-size: 0.97rem;
+    }
+    @media (max-width: 600px) {
+      .glass-card, .visit-card {padding: 1.2rem 0.6rem;}
+      .page-title {font-size: 1.25rem;}
+    }
+  </style>
+</head>
+<body>
+ <!-- Navbar -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('index') }}">
+      <i class="fa-solid fa-hospital-user"></i> Patient Hub
+    </a>
+    <div class="d-flex align-items-center">
+      <a href="{{ url_for('index') }}" class="btn btn-link" style="color:var(--primary); font-weight:600;">Back to Home</a>
+      <button class="theme-toggle" id="theme-toggle">🌙</button>
+    </div>
+  </div>
+</nav>
 
-app = Flask(__name__)
-app.secret_key = "hospital_secret"  # Consistent with your original secret key
+<main class="container">
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container my-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show glass-card" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
-# Initialize CSRF protection
-csrf = CSRFProtect(app)
+  <!-- Search Card -->
+  <div class="glass-card section-card">
+    <form method="POST" class="needs-validation" id="searchForm" novalidate autocomplete="off" action="{{ url_for('retrieve_patient') }}">
+      {{ form.csrf_token }}
+      <div class="row mb-2 align-items-center">
+        <div class="col-sm-8 col-12 mb-2">
+          <label for="vhid" class="form-label">Enter VHID</label>
+          <input type="text" name="vhid" id="vhid" class="form-control" placeholder="Enter Patient VHID" required value="{{ form.vhid.data or '' }}">
+          <div class="invalid-feedback">Please enter a valid VHID.</div>
+        </div>
+        <div class="col-sm-4 col-12 mb-2">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fa-solid fa-search me-2"></i>Search Patient
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
 
-# Use DATABASE_URL environment variable (for Render deployment)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-    'DATABASE_URL',
-    'sqlite:///patient.db'  # fallback for local development
-)
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+  {% if patient %}
+  <!-- Patient Details Card -->
+  <div class="glass-card section-card">
+    <div class="patient-header">
+      <h4><i class="fa-solid fa-user-injured"></i> Patient Details</h4>
+      <button class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editPatientModal">
+        <i class="fa-solid fa-edit me-1"></i>Edit
+      </button>
+    </div>
+    <div class="row g-3">
+      <div class="col-sm-3"><strong>VHID:</strong> {{ patient.vhid }}</div>
+      <div class="col-sm-3"><strong>Date:</strong> {{ patient.date or 'N/A' }}</div>
+      <div class="col-sm-3"><strong>Name:</strong> {{ patient.name or 'N/A' }}</div>
+      <div class="col-sm-3"><strong>Age:</strong> {{ patient.age or 'N/A' }}</div>
+      <div class="col-sm-3"><strong>Gender:</strong> {{ patient.gender or 'N/A' }}</div>
+      <div class="col-sm-3"><strong>Mobile:</strong> {{ patient.mobile or 'N/A' }}</div>
+      <div class="col-sm-3"><strong>Referred By:</strong> {{ patient.ref_by or 'N/A' }}</div>
+      <div class="col-12"><strong>Address:</strong> {{ patient.address or 'N/A' }}</div>
+      <div class="col-12"><strong>Past History:</strong> {{ patient.past_history or 'N/A' }}</div>
+      <div class="col-12"><strong>Drug History:</strong> {{ patient.drug_history or 'N/A' }}</div>
+      <div class="col-12"><strong>Surgical History:</strong> {{ patient.surgical_history or 'N/A' }}</div>
+    </div>
+  </div>
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+  <!-- Edit Patient Modal -->
+  <div class="modal fade" id="editPatientModal" tabindex="-1" aria-labelledby="editPatientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editPatientModalLabel">
+            <i class="fa-solid fa-edit me-2"></i>Edit Patient Details
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="POST" action="{{ url_for('edit_patient', vhid=patient.vhid) }}" class="needs-validation" novalidate>
+          {{ form.csrf_token }}
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="edit_date" class="form-label">Date <span class="text-danger">*</span></label>
+                <input type="date" name="date" id="edit_date" class="form-control" value="{{ patient.date or '' }}" required>
+                <div class="invalid-feedback">Please enter a valid date.</div>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_name" class="form-label">Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" id="edit_name" class="form-control" value="{{ patient.name or '' }}" required>
+                <div class="invalid-feedback">Please enter the patient's name.</div>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_age" class="form-label">Age</label>
+                <input type="number" name="age" id="edit_age" class="form-control" min="0" max="150" value="{{ patient.age or '' }}">
+                <div class="invalid-feedback">Please enter a valid age (0-150).</div>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                <select name="gender" id="edit_gender" class="form-select" required>
+                  <option value="" disabled {% if not patient.gender %}selected{% endif %}>Select</option>
+                  <option value="Male" {% if patient.gender == 'Male' %}selected{% endif %}>Male</option>
+                  <option value="Female" {% if patient.gender == 'Female' %}selected{% endif %}>Female</option>
+                  <option value="Other" {% if patient.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+                <div class="invalid-feedback">Please select a gender.</div>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_mobile" class="form-label">Mobile</label>
+                <input type="tel" name="mobile" id="edit_mobile" class="form-control" pattern="[0-9]{10}" value="{{ patient.mobile or '' }}">
+                <div class="invalid-feedback">Please enter a valid 10-digit mobile number.</div>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_ref_by" class="form-label">Referred By</label>
+                <input type="text" name="ref_by" id="edit_ref_by" class="form-control" value="{{ patient.ref_by or '' }}">
+              </div>
+              <div class="col-12">
+                <label for="edit_address" class="form-label">Address</label>
+                <textarea name="address" id="edit_address" class="form-control" rows="2">{{ patient.address or '' }}</textarea>
+              </div>
+              <div class="col-12">
+                <label for="edit_past_history" class="form-label">Past History</label>
+                <textarea name="past_history" id="edit_past_history" class="form-control" rows="2">{{ patient.past_history or '' }}</textarea>
+              </div>
+              <div class="col-12">
+                <label for="edit_drug_history" class="form-label">Drug History</label>
+                <textarea name="drug_history" id="edit_drug_history" class="form-control" rows="2">{{ patient.drug_history or '' }}</textarea>
+              </div>
+              <div class="col-12">
+                <label for="edit_surgical_history" class="form-label">Surgical History</label>
+                <textarea name="surgical_history" id="edit_surgical_history" class="form-control" rows="2">{{ patient.surgical_history or '' }}</textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-save">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-# ======================= Database Models ==========================
-class Patient(db.Model):
-    __tablename__ = 'patients'
-    vhid = db.Column(db.String, primary_key=True)
-    date = db.Column(db.String)
-    name = db.Column(db.String, nullable=False)
-    age = db.Column(db.Integer)
-    gender = db.Column(db.String)
-    address = db.Column(db.String)
-    ref_by = db.Column(db.String)
-    mobile = db.Column(db.String)
-    past_history = db.Column(db.String)
-    drug_history = db.Column(db.String)
-    surgical_history = db.Column(db.String)
-    visits = db.relationship('Visit', backref='patient', lazy=True)
+  <!-- Visit History Card -->
+  <div class="glass-card section-card">
+    <div class="visit-history-header">
+      <i class="fa-solid fa-clock-rotate-left me-2"></i>Visit History
+    </div>
+    {% if visits %}
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Complaints</th>
+              <th>Diagnosis</th>
+              <th>Treatment</th>
+              <th>Fees</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for visit in visits %}
+            <tr>
+              <td>{{ visit.date or 'N/A' }}</td>
+              <td>{{ visit.complaints or 'N/A' }}</td>
+              <td>{{ visit.diagnosis or 'N/A' }}</td>
+              <td>{{ visit.treatment or 'N/A' }}</td>
+              <td>{{ visit.fees or 'N/A' }}</td>
+              <td>
+                <button class="btn btn-sm btn-edit" data-bs-toggle="modal" data-bs-target="#editVisitModal{{ visit.id }}">
+                  <i class="fa-solid fa-edit"></i>
+                </button>
+              </td>
+            </tr>
+            
+            <!-- Edit Visit Modal -->
+            <div class="modal fade" id="editVisitModal{{ visit.id }}" tabindex="-1" aria-labelledby="editVisitModalLabel{{ visit.id }}" aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="editVisitModalLabel{{ visit.id }}">
+                      <i class="fa-solid fa-edit me-2"></i>Edit Visit Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <form method="POST" action="{{ url_for('edit_visit', visit_id=visit.id) }}" class="needs-validation" novalidate>
+                    {{ form.csrf_token }}
+                    <input type="hidden" name="vhid" value="{{ patient.vhid }}">
+                    <div class="modal-body">
+                      <div class="row g-3">
+                        <div class="col-md-6">
+                          <label class="form-label">Date <span class="text-danger">*</span></label>
+                          <input type="date" name="date" class="form-control" value="{{ visit.date or '' }}" required>
+                          <div class="invalid-feedback">Please enter a valid date.</div>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label">Fees</label>
+                          <input type="number" name="fees" class="form-control" min="0" step="0.01" value="{{ visit.fees or '' }}">
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label">Complaints</label>
+                          <textarea name="complaints" class="form-control" rows="2">{{ visit.complaints or '' }}</textarea>
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label">Diagnosis</label>
+                          <textarea name="diagnosis" class="form-control" rows="2">{{ visit.diagnosis or '' }}</textarea>
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label">Treatment</label>
+                          <textarea name="treatment" class="form-control" rows="3">{{ visit.treatment or '' }}</textarea>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-save">Save Changes</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-center text-muted my-4">No visit history found.</p>
+    {% endif %}
+  </div>
 
-class Visit(db.Model):
-    __tablename__ = 'visits'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    vhid = db.Column(db.String, db.ForeignKey('patients.vhid'), nullable=False)
-    date = db.Column(db.String)
-    ref_by = db.Column(db.String)
-    complaints = db.Column(db.String)
-    past_history = db.Column(db.String)
-    drug_history = db.Column(db.String)
-    surgical_history = db.Column(db.String)
-    vitals = db.Column(db.String)
-    examination = db.Column(db.String)
-    prov_diagnosis = db.Column(db.String)
-    invgs = db.Column(db.String)
-    impression = db.Column(db.String)
-    treatment = db.Column(db.String)
-    next_review = db.Column(db.String)
-    imp = db.Column(db.String)
-    oe = db.Column(db.String)
+  <!-- Add New Visit Card -->
+  <div class="glass-card section-card">
+    <h4 class="text-center mb-3"><i class="fa-solid fa-plus me-2"></i>Add New Visit</h4>
+    <form method="POST" action="{{ url_for('add_visit', vhid=patient.vhid) }}" class="needs-validation" id="visitForm" novalidate>
+      {{ form.csrf_token }}
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Date <span class="text-danger">*</span></label>
+          <input type="date" name="date" class="form-control" required>
+          <div class="invalid-feedback">Please enter a valid date.</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Fees</label>
+          <input type="number" name="fees" class="form-control" min="0" step="0.01">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Complaints</label>
+          <textarea name="complaints" class="form-control" rows="2" placeholder="Enter patient complaints..."></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Diagnosis</label>
+          <textarea name="diagnosis" class="form-control" rows="2" placeholder="Enter diagnosis..."></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Treatment</label>
+          <textarea name="treatment" class="form-control" rows="3" placeholder="Enter treatment details..."></textarea>
+        </div>
+        <div class="col-12 text-center">
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-2"></i>Add Visit
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+</main>
 
-# Initialize database
-def init_db():
-    with app.app_context():
-        db.create_all()
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Set today's date as default for date inputs
+const dateInputs = document.querySelectorAll('input[type="date"]');
+dateInputs.forEach(input => {
+  if (!input.value) {
+    input.value = new Date().toISOString().split('T')[0];
+  }
+});
 
-# ======================= Routes ====================================
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-@app.route("/add", methods=["GET", "POST"])
-def add_patient():
-    if request.method == "POST":
-        vhid = request.form.get('vhid', '').strip().upper()
-        date = request.form.get('date', '').strip()
-        name = request.form.get('name', '').strip()
-        age = request.form.get('age') or None
-        gender = request.form.get('gender')
-        addr = request.form.get('address', '').strip()
-        ref_by = request.form.get('referred', '').strip()
-        mob = request.form.get('mobile', '').strip()
-        past = request.form.get('past_history', '').strip()
-        drug = request.form.get('drug_history', '').strip()
-        surg = request.form.get('surgical_history', '').strip()
-
-        if not vhid or not name:
-            flash("VHID and Name are required", "danger")
-            return redirect(url_for('add_patient'))
-
-        try:
-            patient = Patient(
-                vhid=vhid, date=date, name=name, age=age, gender=gender, address=addr,
-                ref_by=ref_by, mobile=mob, past_history=past, drug_history=drug, surgical_history=surg
-            )
-            db.session.add(patient)
-            db.session.commit()
-            flash("Patient added successfully!", "success")
-            return redirect(url_for('retrieve_patient', vhid=vhid))
-        except sqlalchemy.exc.IntegrityError as e:
-            db.session.rollback()
-            flash("VHID already exists!", "danger")
-            return redirect(url_for('add_patient'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Error adding patient: {str(e)}", "danger")
-            return redirect(url_for('add_patient'))
-    return render_template("add.html")
-
-@app.route("/retrieve", methods=["GET", "POST"])
-def retrieve_patient():
-    patient = None
-    visits = []
-    vhid = (request.form.get("vhid") if request.method == "POST" else request.args.get("vhid") or '').strip().upper()
-
-    if vhid:
-        try:
-            patient = Patient.query.filter_by(vhid=vhid).first()
-            if patient:
-                visits = Visit.query.filter_by(vhid=vhid).order_by(Visit.date.desc(), Visit.id.desc()).all()
-                flash(f"Patient record retrieved for VHID: {vhid}", "success")
-            else:
-                flash(f"No record found for VHID: {vhid}", "danger")
-        except Exception as e:
-            flash(f"Error retrieving patient: {str(e)}", "danger")
-
-    return render_template("retrieve.html", patient=patient, visits=visits)
-
-@app.route("/edit_patient/<vhid>", methods=["POST"])
-def edit_patient(vhid):
-    logger.debug(f"Received edit request for VHID: {vhid}")
-    logger.debug(f"Form data: {request.form}")
-
-    try:
-        date = request.form.get('date', '').strip()
-        name = request.form.get('name', '').strip()
-        age = request.form.get('age') or None
-        gender = request.form.get('gender', '').strip()
-        address = request.form.get('address', '').strip()
-        ref_by = request.form.get('ref_by', '').strip()
-        mobile = request.form.get('mobile', '').strip()
-        past_history = request.form.get('past_history', '').strip()
-        drug_history = request.form.get('drug_history', '').strip()
-        surgical_history = request.form.get('surgical_history', '').strip()
-
-        errors = []
-        if not name:
-            errors.append("Name is required")
-        if not date:
-            errors.append("Date is required")
-        if not gender:
-            errors.append("Gender is required")
-        if mobile and not mobile.isdigit():
-            errors.append("Mobile number must contain only digits")
-        if age and (not age.isdigit() or int(age) < 0 or int(age) > 150):
-            errors.append("Age must be a number between 0 and 150")
-
-        if errors:
-            for error in errors:
-                flash(error, "danger")
-            logger.debug(f"Validation errors: {errors}")
-            return redirect(url_for('retrieve_patient', vhid=vhid))
-
-        patient = Patient.query.filter_by(vhid=vhid).first()
-        if not patient:
-            flash("Patient not found", "danger")
-            return redirect(url_for('retrieve_patient', vhid=vhid))
-
-        patient.date = date
-        patient.name = name
-        patient.age = age
-        patient.gender = gender
-        patient.address = address
-        patient.ref_by = ref_by
-        patient.mobile = mobile
-        patient.past_history = past_history
-        patient.drug_history = drug_history
-        patient.surgical_history = surgical_history
-
-        db.session.commit()
-        logger.debug(f"Updated patient with VHID: {vhid}")
-        flash("Patient details updated successfully!", "success")
-        return redirect(url_for('retrieve_patient', vhid=vhid))
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Error updating patient: {str(e)}")
-        flash(f"Error updating patient: {str(e)}", "danger")
-        return redirect(url_for('retrieve_patient', vhid=vhid))
-
-@app.route("/add_visit/<vhid>", methods=["POST"])
-def add_visit(vhid):
-    try:
-        date = request.form.get('date', '').strip()
-        vitals = request.form.get('vitals', '').strip()
-        complaints = request.form.get('complaints', '').strip()
-        oe = request.form.get('oe', '').strip()
-        imp = request.form.get('imp', '').strip()
-        invgs = request.form.get('invgs', '').strip()
-        treatment = request.form.get('treatment', '').strip()
-        ref_by = request.form.get('ref_by', '').strip()
-        past_history = request.form.get('past_history', '').strip()
-        drug_history = request.form.get('drug_history', '').strip()
-        surgical_history = request.form.get('surgical_history', '').strip()
-        examination = request.form.get('examination', '').strip()
-        prov_diagnosis = request.form.get('prov_diagnosis', '').strip()
-        impression = request.form.get('impression', '').strip()
-        next_review = request.form.get('next_review', '').strip()
-
-        visit = Visit(
-            vhid=vhid, date=date, ref_by=ref_by, complaints=complaints, past_history=past_history,
-            drug_history=drug_history, surgical_history=surgical_history, vitals=vitals,
-            examination=examination, prov_diagnosis=prov_diagnosis, invgs=invgs,
-            impression=impression, treatment=treatment, next_review=next_review, imp=imp, oe=oe
-        )
-        db.session.add(visit)
-        db.session.commit()
-        flash("Visit added successfully!", "success")
-        return redirect(url_for('retrieve_patient', vhid=vhid))
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Error adding visit: {str(e)}", "danger")
-        return redirect(url_for('retrieve_patient', vhid=vhid))
-
-@app.route("/edit_visit/<int:visit_id>", methods=["POST"])
-def edit_visit(visit_id):
-    logger.debug(f"Received edit request for visit ID: {visit_id}")
-    logger.debug(f"Form data: {request.form}")
-
-    try:
-        date = request.form.get('date', '').strip()
-        complaints = request.form.get('complaints', '').strip()
-        vitals = request.form.get('vitals', '').strip()
-        invgs = request.form.get('invgs', '').strip()
-        imp = request.form.get('imp', '').strip()
-        oe = request.form.get('oe', '').strip()
-        treatment = request.form.get('treatment', '').strip()
-        ref_by = request.form.get('ref_by', '').strip()
-        past_history = request.form.get('past_history', '').strip()
-        drug_history = request.form.get('drug_history', '').strip()
-        surgical_history = request.form.get('surgical_history', '').strip()
-        examination = request.form.get('examination', '').strip()
-        prov_diagnosis = request.form.get('prov_diagnosis', '').strip()
-        impression = request.form.get('impression', '').strip()
-        next_review = request.form.get('next_review', '').strip()
-
-        errors = []
-        if not date:
-            errors.append("Date is required")
-        if not complaints:
-            errors.append("Complaints are required")
-
-        if errors:
-            for error in errors:
-                flash(error, "danger")
-            logger.debug(f"Validation errors: {errors}")
-            return redirect(url_for('retrieve_patient', vhid=request.form.get('vhid')))
-
-        visit = Visit.query.get(visit_id)
-        if not visit:
-            flash("Visit not found", "danger")
-            return redirect(url_for('retrieve_patient', vhid=request.form.get('vhid')))
-
-        visit.date = date
-        visit.ref_by = ref_by
-        visit.complaints = complaints
-        visit.past_history = past_history
-        visit.drug_history = drug_history
-        visit.surgical_history = surgical_history
-        visit.vitals = vitals
-        visit.examination = examination
-        visit.prov_diagnosis = prov_diagnosis
-        visit.invgs = invgs
-        visit.impression = impression
-        visit.treatment = treatment
-        visit.next_review = next_review
-        visit.imp = imp
-        visit.oe = oe
-
-        db.session.commit()
-        logger.debug(f"Updated visit with ID: {visit_id}")
-        flash("Visit details updated successfully!", "success")
-        return redirect(url_for('retrieve_patient', vhid=visit.vhid))
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Error updating visit: {str(e)}")
-        flash(f"Error updating visit: {str(e)}", "danger")
-        return redirect(url_for('retrieve_patient', vhid=request.form.get('vhid')))
-
-@app.route("/get_visit/<int:visit_id>", methods=["GET"])
-def get_visit(visit_id):
-    try:
-        visit = Visit.query.get(visit_id)
-        if visit:
-            return jsonify({
-                'id': visit.id, 'vhid': visit.vhid, 'date': visit.date, 'ref_by': visit.ref_by,
-                'complaints': visit.complaints, 'past_history': visit.past_history,
-                'drug_history': visit.drug_history, 'surgical_history': visit.surgical_history,
-                'vitals': visit.vitals, 'examination': visit.examination,
-                'prov_diagnosis': visit.prov_diagnosis, 'invgs': visit.invgs,
-                'impression': visit.impression, 'treatment': visit.treatment,
-                'next_review': visit.next_review, 'imp': visit.imp, 'oe': visit.oe
-            })
-        else:
-            return jsonify({"error": "Visit not found"}), 404
-    except Exception as e:
-        logger.error(f"Error retrieving visit: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/stats")
-def statistics():
-    try:
-        patient_count = Patient.query.count()
-        visit_count = Visit.query.count()
-        stats = {
-            'patient_count': patient_count,
-            'visit_count': visit_count,
-            'db_size_mb': 'N/A'  # Cloud DB size not directly accessible
+// Form validation
+(function () {
+  'use strict'
+  var forms = document.querySelectorAll('.needs-validation')
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
         }
-        return render_template("stats.html", stats=stats)
-    except Exception as e:
-        flash(f"Error retrieving statistics: {str(e)}", "danger")
-        return redirect(url_for('index'))
-
-if __name__ == "__main__":
-    init_db()
-    app.run(debug=True, host="0.0.0.0", port=5000)
+        form.classList.add('was-validated')
+      }, false)
+    })
+})()
+</script>
