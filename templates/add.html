@@ -21,7 +21,6 @@
       --shadow: 0 10px 20px rgba(0,0,0,0.08);
       --transition: all 0.3s ease;
     }
-
     body {
       font-family: 'Source Sans Pro', sans-serif;
       background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
@@ -29,12 +28,10 @@
       min-height: 100vh;
       transition: var(--transition);
     }
-
     body.dark-mode {
       background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
       color: var(--dark-text);
     }
-
     .navbar {
       background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
@@ -42,22 +39,18 @@
       padding: 1rem 0;
       transition: var(--transition);
     }
-
     .dark-mode .navbar {
       background: rgba(30, 30, 30, 0.9);
       box-shadow: 0 2px 15px rgba(0,0,0,0.3);
     }
-
     .navbar-brand {
       font-weight: 700;
       color: var(--primary);
       font-size: 1.5rem;
     }
-
     .dark-mode .navbar-brand {
       color: var(--success);
     }
-
     .btn-back {
       background: var(--primary);
       color: white;
@@ -68,14 +61,12 @@
       transition: var(--transition);
       border: none;
     }
-
     .btn-back:hover {
       background: var(--secondary);
       color: white;
       transform: translateY(-2px);
       box-shadow: var(--shadow);
     }
-
     .theme-toggle {
       background: transparent;
       border: 2px solid var(--primary);
@@ -88,29 +79,23 @@
       transition: var(--transition);
       cursor: pointer;
     }
-
     .dark-mode .theme-toggle {
       border-color: var(--success);
     }
-
     .theme-toggle:hover {
       transform: scale(1.1);
     }
-
     main {
       padding: 2rem 0;
     }
-
     h2 {
       font-weight: 700;
       color: var(--dark);
       margin-bottom: 1.5rem;
     }
-
     .dark-mode h2 {
       color: var(--success);
     }
-
     .glass-card {
       background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(10px);
@@ -120,22 +105,18 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       transition: var(--transition);
     }
-
     .dark-mode .glass-card {
       background: rgba(30, 30, 30, 0.7);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
-
     .form-label {
       font-weight: 600;
       margin-bottom: 0.5rem;
       color: var(--dark);
     }
-
     .dark-mode .form-label {
       color: var(--dark-text);
     }
-
     .form-control, .form-select {
       border-radius: 8px;
       padding: 0.75rem 1rem;
@@ -143,23 +124,19 @@
       transition: var(--transition);
       background: rgba(255, 255, 255, 0.7);
     }
-
     .dark-mode .form-control, .dark-mode .form-select {
       background: rgba(40, 40, 40, 0.7);
       border-color: #444;
       color: var(--dark-text);
     }
-
     .form-control:focus, .form-select:focus {
       border-color: var(--primary-light);
       box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
     }
-
     .dark-mode .form-control:focus, .dark-mode .form-select:focus {
       border-color: var(--success);
       box-shadow: 0 0 0 0.25rem rgba(76, 201, 240, 0.25);
     }
-
     .btn-gradient {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
       color: white;
@@ -169,13 +146,11 @@
       font-weight: 600;
       transition: var(--transition);
     }
-
     .btn-gradient:hover {
       transform: translateY(-3px);
       box-shadow: var(--shadow);
       background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
     }
-
     .btn-secondary {
       background: transparent;
       color: var(--primary);
@@ -185,42 +160,34 @@
       font-weight: 600;
       transition: var(--transition);
     }
-
     .dark-mode .btn-secondary {
       color: var(--success);
       border-color: var(--success);
     }
-
     .btn-secondary:hover {
       background: var(--primary);
       color: white;
       transform: translateY(-3px);
       box-shadow: var(--shadow);
     }
-
     .dark-mode .btn-secondary:hover {
       background: var(--success);
       color: var(--dark-bg);
     }
-
     hr {
       border-top: 2px solid rgba(0,0,0,0.1);
       margin: 2rem 0;
     }
-
     .dark-mode hr {
       border-top: 2px solid rgba(255,255,255,0.1);
     }
-
     h5.text-primary {
       color: var(--primary) !important;
       font-weight: 700;
     }
-
     .dark-mode h5.text-primary {
       color: var(--success) !important;
     }
-
     footer {
       background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(10px);
@@ -229,30 +196,24 @@
       margin-top: 3rem;
       transition: var(--transition);
     }
-
     .dark-mode footer {
       background: rgba(30, 30, 30, 0.8);
       color: #aaa;
     }
-
     footer a {
       color: var(--primary);
       text-decoration: none;
       font-weight: 600;
     }
-
     .dark-mode footer a {
       color: var(--success);
     }
-
     footer a:hover {
       text-decoration: underline;
     }
-
     .invalid-feedback {
       font-weight: 500;
     }
-
     @media (max-width: 768px) {
       .glass-card {
         padding: 1.5rem;
@@ -264,20 +225,35 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg">
     <div class="container">
-      <a class="navbar-brand" href="/">Patient Hub</a>
+      <a class="navbar-brand" href="{{ url_for('index') }}">Patient Hub</a>
       <div class="d-flex align-items-center">
-        <a href="/index.html" class="btn-back me-2">Back to Home</a>
+        <a href="{{ url_for('index') }}" class="btn-back me-2">Back to Home</a>
         <button class="theme-toggle" id="theme-toggle">🌙</button>
       </div>
     </div>
   </nav>
 
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container my-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
   <!-- Form -->
   <main class="container my-5">
     <h2 class="text-center mb-4">Add New Patient</h2>
     <div class="glass-card">
-      <form id="patientForm" action="/add" method="POST" novalidate>
-        
+      <form id="patientForm" action="{{ url_for('add_patient') }}" method="POST" novalidate>
+        {{ form.csrf_token }} <!-- CSRF token for Flask-WTF -->
+
         <!-- Row 1: VHID + Date -->
         <div class="row">
           <div class="col-md-6 mb-3">
@@ -307,9 +283,9 @@
             <label for="gender" class="form-label">Gender</label>
             <select class="form-select" id="gender" name="gender">
               <option value="" selected disabled>Select</option>
-              <option>Male</option>
-              <option>Female</option>
-              <option>Other</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
             </select>
           </div>
         </div>
@@ -355,7 +331,7 @@
         <!-- Buttons -->
         <div class="d-flex justify-content-center gap-3 mt-4">
           <button type="submit" class="btn btn-gradient">Save Patient</button>
-          <a href="/" class="btn btn-secondary">Cancel</a>
+          <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
         </div>
 
       </form>
@@ -371,20 +347,17 @@
   <script>
     // Auto-fill today's date
     document.getElementById('date').valueAsDate = new Date();
-
     // Theme toggle
     const themeToggle = document.getElementById('theme-toggle');
     const body = document.body;
     const isDark = localStorage.getItem('darkMode') === 'true';
     if (isDark) { body.classList.add('dark-mode'); themeToggle.textContent = '☀️'; }
-
     themeToggle.addEventListener('click', () => {
       body.classList.toggle('dark-mode');
       const darkModeEnabled = body.classList.contains('dark-mode');
       localStorage.setItem('darkMode', darkModeEnabled);
       themeToggle.textContent = darkModeEnabled ? '☀️' : '🌙';
     });
-
     // Form validation
     const form = document.getElementById('patientForm');
     form.addEventListener('submit', (event) => {
@@ -394,7 +367,6 @@
       }
       form.classList.add('was-validated');
     });
-
     const mobileInput = document.getElementById('mobile');
     mobileInput.addEventListener('input', () => {
       const pattern = /^[0-9]{10}$/;

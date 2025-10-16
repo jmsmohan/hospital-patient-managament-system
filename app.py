@@ -1,12 +1,15 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from docx import Document
+from flask_wtf import CSRFProtect
 import os
-from werkzeug.utils import secure_filename
 import logging
+import sqlalchemy.exc
 
 app = Flask(__name__)
-app.secret_key = "hospital_secret"
+app.secret_key = "hospital_secret"  # Consistent with your original secret key
+
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
 
 # Use DATABASE_URL environment variable (for Render deployment)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
@@ -19,12 +22,6 @@ db = SQLAlchemy(app)
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-# ======================= File Upload Config =======================
-UPLOAD_FOLDER = 'Uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-ALLOWED_EXTENSIONS = {'docx'}
 
 # ======================= Database Models ==========================
 class Patient(db.Model):
@@ -67,27 +64,6 @@ def init_db():
     with app.app_context():
         db.create_all()
 
-# ======================= Utils =====================================
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def parse_word_doc(filepath):
-    doc = Document(filepath)
-    lines = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
-    patients, current = [], {}
-    for line in lines:
-        if line.lower().startswith("patient"):
-            if current:
-                patients.append(current)
-                current = {}
-            continue
-        if ":" in line:
-            key, value = line.split(":", 1)
-            current[key.strip().lower().replace(" ", "_")] = value.strip()
-    if current:
-        patients.append(current)
-    return patients
-
 # ======================= Routes ====================================
 @app.route("/")
 def index():
@@ -121,7 +97,7 @@ def add_patient():
             db.session.commit()
             flash("Patient added successfully!", "success")
             return redirect(url_for('retrieve_patient', vhid=vhid))
-        except db.session.integrity_error as e:
+        except sqlalchemy.exc.IntegrityError as e:
             db.session.rollback()
             flash("VHID already exists!", "danger")
             return redirect(url_for('add_patient'))
@@ -330,49 +306,11 @@ def get_visit(visit_id):
         logger.error(f"Error retrieving visit: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@app.route("/upload", methods=["GET", "POST"])
-def upload_file():
-    if request.method == "POST":
-        file = request.files.get('file')
-        if not file or file.filename == '':
-            flash("No file selected", "danger")
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename))
-            file.save(filepath)
-            try:
-                patients = parse_word_doc(filepath)
-                for data in patients:
-                    vhid = data.get("vhid", "").strip().upper()
-                    if not vhid:
-                        continue
-                    if not Patient.query.filter_by(vhid=vhid).first():
-                        patient = Patient(
-                            vhid=vhid, date=data.get("date", ""), name=data.get("name", ""),
-                            age=data.get("age", ""), gender=data.get("gender", ""),
-                            address=data.get("address", ""), ref_by=data.get("ref_by", ""),
-                            mobile=data.get("mobile", ""), past_history=data.get("past_history", ""),
-                            drug_history=data.get("drug_history", ""), surgical_history=data.get("surgical_history", "")
-                        )
-                        db.session.add(patient)
-                db.session.commit()
-                flash("Patient(s) uploaded successfully!", "success")
-                return redirect(url_for('index'))
-            except Exception as e:
-                db.session.rollback()
-                flash(f"Error processing file: {str(e)}", "danger")
-                return redirect(request.url)
-        else:
-            flash("Invalid file type. Only .docx allowed", "danger")
-            return redirect(request.url)
-    return render_template("upload.html")
-
 @app.route("/stats")
 def statistics():
     try:
         patient_count = Patient.query.count()
         visit_count = Visit.query.count()
-        # Note: DB size calculation may not be accurate for cloud databases like Neon
         stats = {
             'patient_count': patient_count,
             'visit_count': visit_count,
